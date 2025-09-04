@@ -1,11 +1,11 @@
 const CACHE_NAME = 'barcode-app-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
+  './',
+  './index.html',
+  './manifest.json',
   'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  './icons/icon-192x192.png',
+  './icons/icon-512x512.png'
 ];
 
 // 서비스 워커 설치
@@ -166,4 +166,5 @@ self.addEventListener('notificationclick', event => {
       clients.openWindow('/')
     );
   }
+
 });
