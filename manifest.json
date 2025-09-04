@@ -1,0 +1,53 @@
+{
+  "name": "우리집바코드",
+  "short_name": "우리집바코드",
+  "description": "가족을 위한 안전한 모바일 바코드 관리 앱",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#764ba2",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "ko-KR",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "icons/icon-180x180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "새로고침",
+      "short_name": "새로고침",
+      "description": "바코드 데이터 새로고침",
+      "url": "/?action=refresh",
+      "icons": [
+        {
+          "src": "icons/refresh-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

@@ -21,6 +21,22 @@
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     
+    <!-- PWA 매니페스트 -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- PWA 메타태그 -->
+    <meta name="theme-color" content="#764ba2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="우리집바코드">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- 아이콘들 -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png">
+    <link rel="shortcut icon" href="/icons/icon-192x192.png">
+    
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
 /* 기본 스타일 */
@@ -383,8 +399,11 @@ footer {
 <body>
     <div class="container">
         <header>
-            <h1>🎫 모바일 바코드</h1>
+            <h1>🏠 우리집바코드</h1>
             <p>실시간 모바일 바코드 조회</p>
+            <button id="install-pwa" class="btn btn-secondary" style="display: none; position: absolute; top: 15px; right: 15px;">
+                📱 앱 설치
+            </button>
         </header>
 
         <!-- 로그인 폼 -->
@@ -520,6 +539,53 @@ footer {
 
         // 초기화
         document.addEventListener('DOMContentLoaded', () => {
+            // PWA 서비스워커 등록
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('서비스워커 등록 성공:', registration);
+                    })
+                    .catch(error => {
+                        console.log('서비스워커 등록 실패:', error);
+                    });
+            }
+            
+            // PWA 설치 이벤트 리스너
+            window.addEventListener('beforeinstallprompt', (e) => {
+                console.log('PWA 설치 프롬프트 감지');
+                e.preventDefault();
+                deferredPrompt = e;
+                document.getElementById('install-pwa').style.display = 'inline-block';
+            });
+            
+            // iOS Safari 감지 및 설치 안내
+            function isIOS() {
+                return /iPad|iPhone|iPod/.test(navigator.userAgent);
+            }
+            
+            function isInStandaloneMode() {
+                return window.matchMedia('(display-mode: standalone)').matches || 
+                       window.navigator.standalone === true;
+            }
+            
+            // iOS에서 PWA가 설치되지 않은 경우 안내
+            if (isIOS() && !isInStandaloneMode()) {
+                setTimeout(() => {
+                    const installBtn = document.getElementById('install-pwa');
+                    installBtn.style.display = 'inline-block';
+                    installBtn.textContent = '🍎 iOS 설치';
+                    installBtn.onclick = showIOSInstallGuide;
+                }, 3000); // 3초 후 표시
+            }
+            
+            // 앱이 이미 설치된 경우
+            window.addEventListener('appinstalled', () => {
+                console.log('PWA 앱 설치 완료');
+                document.getElementById('install-pwa').style.display = 'none';
+                deferredPrompt = null;
+                showSuccess('우리집바코드 앱이 설치되었습니다! 홈화면에서 확인하세요.');
+            });
+            
             // 세션 스토리지에서 사용자 정보 확인
             const savedUser = sessionStorage.getItem('user_session');
             
@@ -547,6 +613,9 @@ footer {
             retryBarcodeBtn.addEventListener('click', loadBarcodeFromDatabase);
             copyBarcodeBtn.addEventListener('click', copyBarcodeNumber);
             closeErrorBtn.addEventListener('click', hideError);
+            
+            // PWA 설치 버튼 이벤트
+            document.getElementById('install-pwa').addEventListener('click', installPWA);
         });
 
         // 세션 유효성 체크 함수
@@ -919,6 +988,9 @@ footer {
         // 자동 새로고침 interval timer 저장용
         let autoRefreshInterval = null;
         
+        // PWA 설치 프롬프트
+        let deferredPrompt = null;
+        
         // 3, 4. 자동 새로고침 스케줄링 (30초 후 시작, 이후 10초 간격으로 4회)
         function startAutoRefreshSchedule() {
             console.log('자동 새로고침 스케줄 시작');
@@ -978,6 +1050,83 @@ footer {
                 console.error('Copy failed:', error);
                 showError('복사에 실패했습니다. 수동으로 복사해주세요.');
             }
+        }
+        
+        // PWA 설치 함수
+        async function installPWA() {
+            if (!deferredPrompt) {
+                showError('앱 설치가 지원되지 않는 환경입니다.');
+                return;
+            }
+            
+            try {
+                // 설치 프롬프트 표시
+                deferredPrompt.prompt();
+                
+                // 사용자의 응답 대기
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('사용자가 PWA 설치를 승인했습니다');
+                    showSuccess('앱 설치가 시작되었습니다!');
+                } else {
+                    console.log('사용자가 PWA 설치를 거부했습니다');
+                }
+                
+                // 프롬프트는 한 번만 사용 가능
+                deferredPrompt = null;
+                document.getElementById('install-pwa').style.display = 'none';
+                
+            } catch (error) {
+                console.error('PWA 설치 중 오류:', error);
+                showError('앱 설치 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // iOS 설치 안내 함수
+        function showIOSInstallGuide() {
+            const guideMessage = `
+📱 iPhone/iPad에서 앱 설치 방법:
+
+1. 하단 공유 버튼 📤 터치
+2. "홈 화면에 추가" 선택
+3. "추가" 버튼 터치
+
+그러면 우리집바코드가 홈화면에 앱으로 추가됩니다!
+            `.trim();
+            
+            // 간단한 모달 스타일 알림
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.8); z-index: 10000; display: flex;
+                align-items: center; justify-content: center; padding: 20px;
+            `;
+            
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: white; padding: 30px; border-radius: 15px; 
+                max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            `;
+            
+            content.innerHTML = `
+                <h3 style="margin: 0 0 20px 0; color: #333;">🏠 우리집바코드 설치</h3>
+                <p style="line-height: 1.6; white-space: pre-line; margin: 0 0 20px 0;">${guideMessage}</p>
+                <button onclick="this.closest('.modal').remove()" 
+                        style="background: #667eea; color: white; border: none; 
+                               padding: 12px 24px; border-radius: 8px; cursor: pointer;">
+                    확인
+                </button>
+            `;
+            
+            modal.className = 'modal';
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+            
+            // 배경 클릭시 닫기
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
         }
 
         // 로딩 표시
