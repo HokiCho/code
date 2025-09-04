@@ -2,12 +2,12 @@
   "name": "우리집바코드",
   "short_name": "우리집바코드",
   "description": "가족을 위한 안전한 모바일 바코드 관리 앱",
-  "start_url": "/",
+  "start_url": "/code/",
   "display": "standalone",
   "background_color": "#667eea",
   "theme_color": "#764ba2",
   "orientation": "portrait",
-  "scope": "/",
+  "scope": "/code/",
   "lang": "ko-KR",
   "categories": ["productivity", "utilities"],
   "icons": [
@@ -50,4 +50,5 @@
       ]
     }
   ]
+
 }
