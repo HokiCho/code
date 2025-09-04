@@ -541,7 +541,7 @@ footer {
         document.addEventListener('DOMContentLoaded', () => {
             // PWA 서비스워커 등록
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('./sw.js')
                     .then(registration => {
                         console.log('서비스워커 등록 성공:', registration);
                     })
@@ -1176,3 +1176,4 @@ footer {
 </body>
 
 </html>
+
